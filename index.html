@@ -3,29 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>日报助手 V7.0</title>
+    <title>日报助手 V8.0</title>
     <style>
-        /* === V7.0 全球版样式 === */
+        /* === V8.0 样式 (纯净截图版) === */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 12px; background-color: #f2f4f8; color: #333; margin: 0; transition: all 0.3s; }
         
         /* 顶部栏 */
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         h3 { margin: 0; font-size: 18px; color: #222; }
-        
-        /* 语言切换按钮 */
         .lang-btn { background: #e1e1e1; border: none; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #555; cursor: pointer; }
         
         /* 输入面板 */
         .input-panel { background: white; padding: 16px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; }
-        
-        /* 表单布局 */
         .form-row { display: flex; gap: 12px; margin-bottom: 14px; }
         label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 6px; }
         
         input, select { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #f9f9f9; -webkit-appearance: none; }
         input:focus { border-color: #007AFF; background: white; outline: none; }
         
-        /* 按钮组 */
+        /* 按钮 */
         .btn { border: none; height: 48px; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; color: white; width: 100%; transition: transform 0.1s; }
         .btn:active { transform: scale(0.98); }
         .btn-add { background-color: #007AFF; flex: 2; }
@@ -42,21 +38,31 @@
         .header-bg { background-color: #D9E1F2; font-weight: bold; }
         .title-row { font-size: 14px; font-weight: bold; height: 32px; border: none; text-align: center; }
         .col-s { width: 10%; } .col-m { width: 18%; } .col-l { width: 22%; }
-        
-        /* 未完成输入框 */
         .unfinished-input { border-left: 4px solid #FF9500; margin-top: 10px; }
 
-        /* 截图模式 */
+        /* === 截图模式核心优化 === */
         body.screenshot-mode { background: white; padding: 0; }
         body.screenshot-mode .top-bar, body.screenshot-mode .input-panel, body.screenshot-mode .preview-header { display: none; }
-        body.screenshot-mode .preview-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999; padding: 20px 0; border-radius: 0; display: flex; align-items: flex-start; justify-content: center; }
-        #exit-tip { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; z-index: 1000; pointer-events: none;}
+        body.screenshot-mode .preview-container { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            z-index: 999; padding: 20px 0; border-radius: 0; 
+            display: flex; align-items: flex-start; justify-content: center; 
+        }
+        
+        /* 提示语样式 (增加透明度过渡) */
+        #exit-tip { 
+            position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); 
+            background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; 
+            border-radius: 30px; font-size: 14px; z-index: 1000; pointer-events: none;
+            opacity: 0; /* 默认隐藏 */
+            transition: opacity 0.5s ease-in-out; /* 渐隐动画 */
+        }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <h3 id="ui-title">日报助手 v7.0</h3>
+        <h3 id="ui-title">日报助手 v8.0</h3>
         <button class="lang-btn" onclick="toggleLang()">🌐 中/En</button>
     </div>
 
@@ -103,105 +109,37 @@
 
     <div id="lbl-preview" class="preview-header">👇 预览区域 (点击可修改)</div>
     <div class="preview-container">
-        <table id="reportTable">
-            </table>
+        <table id="reportTable"></table>
     </div>
     
     <div id="exit-tip">Double tap to exit / 双击退出</div>
 
 <script>
     // ============================================
-    // 🌍 翻译配置 (Translation Config)
+    // ⚙️ 配置
     // ============================================
+    const MY_SKU_LIST = ["A3040031", "A3028031", "A3028011", "A3040011", "A3050022"];
+    
     const TEXTS = {
-        zh: {
-            title: "日报助手 v7.0",
-            sku: "SKU (选择或手输)",
-            success: "成功数量",
-            fail: "失败描述 (X3陈旧...)",
-            stack: "堆栈号",
-            box: "箱号记录",
-            add: "➕ 添加一行",
-            shot: "📸 全屏截图模式",
-            preview: "👇 预览区域 (点击可修改)",
-            ph_sku: "点击选择...",
-            ph_fail: "X3陈旧 X1掉包",
-            ph_unfin: "当日领取未完成: A3028011 X 20",
-            
-            // 表格内容
-            t_title: "翻新工作日报",
-            t_emp: "员工", t_sku: "SKU", t_chn: "渠道", t_tot: "总数", t_suc: "成功", t_fail: "报废",
-            t_reas: "失败原因", t_rem: "备注",
-            t_pkg: "包装", t_app: "外观", t_fun: "功能",
-            t_day: "当日出货数量", t_self: "剩余自存数量", t_cum: "剩余累计数量",
-            t_unfin: "当日领取未完成数量"
-        },
-        en: {
-            title: "Report Helper v7.0",
-            sku: "SKU (Select/Type)",
-            success: "Success Qty",
-            fail: "Fail Desc (X3 Old...)",
-            stack: "Stack No.",
-            box: "Box Info",
-            add: "➕ Add Row",
-            shot: "📸 Screenshot Mode",
-            preview: "👇 Preview (Click to Edit)",
-            ph_sku: "Select...",
-            ph_fail: "X3 Old, X1 Fake",
-            ph_unfin: "Unfinished: A3028011 X 20",
-
-            // Table Content
-            t_title: "Refurbishment Daily Report",
-            t_emp: "Staff", t_sku: "SKU", t_chn: "CH", t_tot: "Total", t_suc: "OK", t_fail: "NG",
-            t_reas: "Fail Reason", t_rem: "Remark",
-            t_pkg: "Pkg", t_app: "Appr", t_fun: "Func",
-            t_day: "Daily Output", t_self: "Remaining Stock", t_cum: "Cumulative Stock",
-            t_unfin: "Unfinished Tasks"
-        }
+        zh: { title: "日报助手 v8.0", sku: "SKU (选择或手输)", success: "成功数量", fail: "失败描述 (X3陈旧...)", stack: "堆栈号", box: "箱号记录", add: "➕ 添加一行", shot: "📸 全屏截图模式", preview: "👇 预览区域 (点击可修改)", ph_sku: "点击选择...", ph_fail: "X3陈旧 X1掉包", ph_unfin: "当日领取未完成: A3028011 X 20", t_title: "翻新工作日报", t_emp: "员工", t_sku: "SKU", t_chn: "渠道", t_tot: "总数", t_suc: "成功", t_fail: "报废", t_reas: "失败原因", t_rem: "备注", t_pkg: "包装", t_app: "外观", t_fun: "功能", t_day: "当日出货数量", t_self: "剩余自存数量", t_cum: "剩余累计数量", t_unfin: "当日领取未完成数量" },
+        en: { title: "Report Helper v8.0", sku: "SKU (Select/Type)", success: "Success Qty", fail: "Fail Desc (X3 Old...)", stack: "Stack No.", box: "Box Info", add: "➕ Add Row", shot: "📸 Screenshot Mode", preview: "👇 Preview (Click to Edit)", ph_sku: "Select...", ph_fail: "X3 Old, X1 Fake", ph_unfin: "Unfinished: A3028011 X 20", t_title: "Refurbishment Daily Report", t_emp: "Staff", t_sku: "SKU", t_chn: "CH", t_tot: "Total", t_suc: "OK", t_fail: "NG", t_reas: "Fail Reason", t_rem: "Remark", t_pkg: "Pkg", t_app: "Appr", t_fun: "Func", t_day: "Daily Output", t_self: "Remaining Stock", t_cum: "Cumulative Stock", t_unfin: "Unfinished Tasks" }
     };
 
-    // ============================================
-    // ⚙️ SKU 配置
-    // ============================================
-    const MY_SKU_LIST = [
-        "A3035Z21", "A3025015", "A3028011", "A3040011", "A3004Z11", "A3035Z11"
-    ];
-
-    let currentLang = 'zh'; // 默认中文
+    let currentLang = 'zh';
     let records = [];
 
-    // 初始化
     (function init() {
-        // 填充SKU
         const dl = document.getElementById('sku-options');
         MY_SKU_LIST.forEach(s => { const op = document.createElement('option'); op.value = s; dl.appendChild(op); });
-        updateUI(); // 初始渲染界面
-        render();   // 初始渲染表格
+        updateUI(); render();
     })();
 
-    // 切换语言
-    function toggleLang() {
-        currentLang = currentLang === 'zh' ? 'en' : 'zh';
-        updateUI();
-        render(); // 重新渲染表格表头
-    }
+    function toggleLang() { currentLang = currentLang === 'zh' ? 'en' : 'zh'; updateUI(); render(); }
 
     function updateUI() {
         const t = TEXTS[currentLang];
-        document.getElementById('ui-title').innerText = t.title;
-        document.getElementById('lbl-sku').innerText = t.sku;
-        document.getElementById('lbl-success').innerText = t.success;
-        document.getElementById('lbl-fail').innerText = t.fail;
-        document.getElementById('lbl-stack').innerText = t.stack;
-        document.getElementById('lbl-box').innerText = t.box;
-        document.getElementById('btn-add').innerText = t.add;
-        document.getElementById('btn-shot').innerText = t.shot;
-        document.getElementById('lbl-preview').innerText = t.preview;
-        
-        // 更新 placeholder
-        document.getElementById('sku').placeholder = t.ph_sku;
-        document.getElementById('failDesc').placeholder = t.ph_fail;
-        document.getElementById('unfinished').placeholder = t.ph_unfin;
+        document.getElementById('ui-title').innerText = t.title; document.getElementById('lbl-sku').innerText = t.sku; document.getElementById('lbl-success').innerText = t.success; document.getElementById('lbl-fail').innerText = t.fail; document.getElementById('lbl-stack').innerText = t.stack; document.getElementById('lbl-box').innerText = t.box; document.getElementById('btn-add').innerText = t.add; document.getElementById('btn-shot').innerText = t.shot; document.getElementById('lbl-preview').innerText = t.preview;
+        document.getElementById('sku').placeholder = t.ph_sku; document.getElementById('failDesc').placeholder = t.ph_fail; document.getElementById('unfinished').placeholder = t.ph_unfin;
     }
 
     function addData() {
@@ -210,92 +148,53 @@
         const stack = document.getElementById('stack').value;
         const failDesc = document.getElementById('failDesc').value;
         const boxInfo = document.getElementById('boxInfo').value;
-
         if(!sku) { document.getElementById('sku').focus(); return; }
 
         let f_pkg=0, f_app=0, f_func=0, p_str="", a_str="", f_str="";
         const matches = failDesc.match(/[xX]\d+/g);
         if (matches) {
             let total = 0; matches.forEach(m => total += parseInt(m.substring(1)));
-            // 简单关键词判断 (中英文兼容)
             const lowDesc = failDesc.toLowerCase();
-            if (lowDesc.includes("掉包") || lowDesc.includes("功能") || lowDesc.includes("fake") || lowDesc.includes("func")) { 
-                f_func = total; f_str = failDesc; 
-            } else if (lowDesc.includes("包装") || lowDesc.includes("box") || lowDesc.includes("pkg")) { 
-                f_pkg = total; p_str = failDesc; 
-            } else { 
-                f_app = total; a_str = failDesc; 
-            }
+            if (lowDesc.includes("掉包") || lowDesc.includes("功能") || lowDesc.includes("fake") || lowDesc.includes("func")) { f_func = total; f_str = failDesc; } else if (lowDesc.includes("包装") || lowDesc.includes("box") || lowDesc.includes("pkg")) { f_pkg = total; p_str = failDesc; } else { f_app = total; a_str = failDesc; }
         }
-
-        records.push({ 
-            name: "John Young", sku, channel: "A", success, 
-            fail: f_pkg+f_app+f_func, 
-            f_pkg_str: p_str, f_app_str: a_str, f_func_str: f_str, 
-            // 备注双语化处理 (简单拼接)
-            remark: `${currentLang==='zh'?'箱号':'Box'}: ${boxInfo}\n${currentLang==='zh'?'堆栈':'Stack'}: ${stack}` 
-        });
-        
-        document.getElementById('sku').value = ''; 
-        document.getElementById('successQty').value = ''; 
-        document.getElementById('failDesc').value = ''; 
-        document.getElementById('boxInfo').value = '';
-        render();
+        records.push({ name: "John Young", sku, channel: "A", success, fail: f_pkg+f_app+f_func, f_pkg_str: p_str, f_app_str: a_str, f_func_str: f_str, remark: `${currentLang==='zh'?'箱号':'Box'}: ${boxInfo}\n${currentLang==='zh'?'堆栈':'Stack'}: ${stack}` });
+        document.getElementById('sku').value = ''; document.getElementById('successQty').value = ''; document.getElementById('failDesc').value = ''; document.getElementById('boxInfo').value = ''; render();
     }
 
-    function clearTable() { 
-        if(confirm(currentLang==='zh'?"确定清空?":"Clear all?")) { 
-            records = []; 
-            document.getElementById('unfinished').value=''; 
-            render(); 
-        } 
-    }
+    function clearTable() { if(confirm(currentLang==='zh'?"确定清空?":"Clear all?")) { records = []; document.getElementById('unfinished').value=''; render(); } }
 
     function render() {
         const tbl = document.getElementById('reportTable');
         const unfin = document.getElementById('unfinished').value;
-        const t = TEXTS[currentLang]; // 获取当前语言包
-        
-        let h = `<tr><td colspan="10" class="title-row" contenteditable="true">${t.t_title}</td></tr>
-        <tr>
-            <td rowspan="2" class="header-bg col-m">${t.t_emp}</td>
-            <td rowspan="2" class="header-bg col-m">${t.t_sku}</td>
-            <td rowspan="2" class="header-bg col-s">${t.t_chn}</td>
-            <td rowspan="2" class="header-bg col-s">${t.t_tot}</td>
-            <td rowspan="2" class="header-bg col-s">${t.t_suc}</td>
-            <td rowspan="2" class="header-bg col-s">${t.t_fail}</td>
-            <td colspan="3" class="header-bg">${t.t_reas}</td>
-            <td rowspan="2" class="header-bg col-l">${t.t_rem}</td>
-        </tr>
-        <tr>
-            <td class="header-bg col-s">${t.t_pkg}</td>
-            <td class="header-bg col-s">${t.t_app}</td>
-            <td class="header-bg col-s">${t.t_fun}</td>
-        </tr>`;
-
-        if(records.length===0) {
-            h+=`<tr><td colspan="10" style="padding:20px;color:#ccc;font-size:12px">...</td></tr>`;
-        } else {
-            records.forEach(r => {
-                h += `<tr><td contenteditable="true">${r.name}</td><td contenteditable="true">${r.sku}</td><td contenteditable="true">${r.channel}</td><td contenteditable="true">${r.success+r.fail}</td><td contenteditable="true" style="font-weight:bold">${r.success}</td><td contenteditable="true">${r.fail}</td><td contenteditable="true">${r.f_pkg_str}</td><td contenteditable="true">${r.f_app_str}</td><td contenteditable="true">${r.f_func_str}</td><td contenteditable="true" style="text-align:left;white-space:pre-wrap">${r.remark}</td></tr>`;
-            });
-        }
-
+        const t = TEXTS[currentLang];
+        let h = `<tr><td colspan="10" class="title-row" contenteditable="true">${t.t_title}</td></tr><tr><td rowspan="2" class="header-bg col-m">${t.t_emp}</td><td rowspan="2" class="header-bg col-m">${t.t_sku}</td><td rowspan="2" class="header-bg col-s">${t.t_chn}</td><td rowspan="2" class="header-bg col-s">${t.t_tot}</td><td rowspan="2" class="header-bg col-s">${t.t_suc}</td><td rowspan="2" class="header-bg col-s">${t.t_fail}</td><td colspan="3" class="header-bg">${t.t_reas}</td><td rowspan="2" class="header-bg col-l">${t.t_rem}</td></tr><tr><td class="header-bg col-s">${t.t_pkg}</td><td class="header-bg col-s">${t.t_app}</td><td class="header-bg col-s">${t.t_fun}</td></tr>`;
+        if(records.length===0) h+=`<tr><td colspan="10" style="padding:20px;color:#ccc;font-size:12px">...</td></tr>`;
+        else records.forEach(r => { h += `<tr><td contenteditable="true">${r.name}</td><td contenteditable="true">${r.sku}</td><td contenteditable="true">${r.channel}</td><td contenteditable="true">${r.success+r.fail}</td><td contenteditable="true" style="font-weight:bold">${r.success}</td><td contenteditable="true">${r.fail}</td><td contenteditable="true">${r.f_pkg_str}</td><td contenteditable="true">${r.f_app_str}</td><td contenteditable="true">${r.f_func_str}</td><td contenteditable="true" style="text-align:left;white-space:pre-wrap">${r.remark}</td></tr>`; });
         const sum = {}; records.forEach(r => { if(!sum[r.sku]) sum[r.sku]=0; sum[r.sku]+=r.success; });
-        h += `<tr><td colspan="10" style="border:none;height:10px"></td></tr>
-              <tr><td class="header-bg">${t.t_sku}</td><td class="header-bg" colspan="2">${t.t_day}</td><td class="header-bg" colspan="3">${t.t_self}</td><td class="header-bg" colspan="4">${t.t_cum}</td></tr>`;
+        h += `<tr><td colspan="10" style="border:none;height:10px"></td></tr><tr><td class="header-bg">${t.t_sku}</td><td class="header-bg" colspan="2">${t.t_day}</td><td class="header-bg" colspan="3">${t.t_self}</td><td class="header-bg" colspan="4">${t.t_cum}</td></tr>`;
         for(let s in sum) h+= `<tr><td contenteditable="true">${s}</td><td contenteditable="true" colspan="2">${sum[s]}</td><td contenteditable="true" colspan="3"></td><td contenteditable="true" colspan="4"></td></tr>`;
-        
         if(unfin || records.length>0) h+=`<tr><td colspan="10" style="border:none;height:10px"></td></tr><tr><td class="header-bg" colspan="2">${t.t_unfin}</td><td contenteditable="true" colspan="8" style="text-align:left;font-weight:bold;padding-left:10px">${unfin}</td></tr>`;
         tbl.innerHTML = h;
     }
 
+    // === 自动隐身逻辑 ===
     function toggleScreenshotMode() {
         document.body.classList.toggle('screenshot-mode');
         const tip = document.getElementById('exit-tip');
-        tip.style.display = document.body.classList.contains('screenshot-mode') ? 'block' : 'none';
-        if(document.body.classList.contains('screenshot-mode')) setTimeout(()=>alert(currentLang==='zh'?"进入全屏，双击空白处退出":"Full screen mode. Double tap to exit."), 100);
+        
+        if (document.body.classList.contains('screenshot-mode')) {
+            // 1. 显示提示
+            tip.style.opacity = '1';
+            
+            // 2. 设定3秒后消失
+            setTimeout(() => {
+                tip.style.opacity = '0';
+            }, 3000); // 3000毫秒 = 3秒
+        } else {
+            tip.style.opacity = '0';
+        }
     }
+    
     document.addEventListener('dblclick', function() { if(document.body.classList.contains('screenshot-mode')) toggleScreenshotMode(); });
 </script>
 </body>
