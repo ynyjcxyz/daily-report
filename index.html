@@ -2,200 +2,167 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>日报助手 V8.0</title>
-    <style>
-        /* === V8.0 样式 (纯净截图版) === */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 12px; background-color: #f2f4f8; color: #333; margin: 0; transition: all 0.3s; }
-        
-        /* 顶部栏 */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        h3 { margin: 0; font-size: 18px; color: #222; }
-        .lang-btn { background: #e1e1e1; border: none; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #555; cursor: pointer; }
-        
-        /* 输入面板 */
-        .input-panel { background: white; padding: 16px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; }
-        .form-row { display: flex; gap: 12px; margin-bottom: 14px; }
-        label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 6px; }
-        
-        input, select { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #f9f9f9; -webkit-appearance: none; }
-        input:focus { border-color: #007AFF; background: white; outline: none; }
-        
-        /* 按钮 */
-        .btn { border: none; height: 48px; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; color: white; width: 100%; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.98); }
-        .btn-add { background-color: #007AFF; flex: 2; }
-        .btn-clear { background-color: #FF3B30; flex: 1; opacity: 0.8; }
-        .btn-shot { background-color: #34C759; margin-top: 20px; box-shadow: 0 4px 10px rgba(52, 199, 89, 0.3); }
-        
-        /* 预览区 */
-        .preview-header { font-size: 14px; color: #888; margin-bottom: 8px; font-weight: bold; }
-        .preview-container { background: white; padding: 10px; border-radius: 4px; overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        
-        /* 表格样式 */
-        table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; table-layout: fixed; min-width: 100%; }
-        th, td { border: 1px solid #999; padding: 5px 2px; text-align: center; vertical-align: middle; word-break: break-all; line-height: 1.3; }
-        .header-bg { background-color: #D9E1F2; font-weight: bold; }
-        .title-row { font-size: 14px; font-weight: bold; height: 32px; border: none; text-align: center; }
-        .col-s { width: 10%; } .col-m { width: 18%; } .col-l { width: 22%; }
-        .unfinished-input { border-left: 4px solid #FF9500; margin-top: 10px; }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作日报生成器</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-        /* === 截图模式核心优化 === */
-        body.screenshot-mode { background: white; padding: 0; }
-        body.screenshot-mode .top-bar, body.screenshot-mode .input-panel, body.screenshot-mode .preview-header { display: none; }
-        body.screenshot-mode .preview-container { 
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-            z-index: 999; padding: 20px 0; border-radius: 0; 
-            display: flex; align-items: flex-start; justify-content: center; 
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5; /* 网页背景色（浅灰） */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 这是我们要截图的区域样式 */
+        #report-card {
+            background-color: #ffffff; /* 日报卡片背景必须是白色 */
+            width: 100%;
+            max-width: 600px; /* 限制最大宽度，手机上看比较舒服 */
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            box-sizing: border-box; /* 确保padding不会撑大宽度 */
+        }
+
+        /* 简单的表格样式 */
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
         }
         
-        /* 提示语样式 (增加透明度过渡) */
-        #exit-tip { 
-            position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); 
-            background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; 
-            border-radius: 30px; font-size: 14px; z-index: 1000; pointer-events: none;
-            opacity: 0; /* 默认隐藏 */
-            transition: opacity 0.5s ease-in-out; /* 渐隐动画 */
+        .date-info {
+            text-align: right;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #e1e4e8;
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            width: 30%; /* 调整列宽比例 */
+        }
+
+        /* 按钮区域样式 */
+        .action-area {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:active {
+            background-color: #0056b3;
+            transform: scale(0.98);
         }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <h3 id="ui-title">日报助手 v8.0</h3>
-        <button class="lang-btn" onclick="toggleLang()">🌐 中/En</button>
+    <div id="report-card">
+        <h2>📑 每日工作报告</h2>
+        <div class="date-info">日期：<span id="current-date"></span></div>
+
+        <table>
+            <tbody>
+                <tr>
+                    <th>工作内容</th>
+                    <td>
+                        1. 完成耳机翻新流程优化<br>
+                        2. Python 脚本调试<br>
+                        3. 这里内容可以写很长很长...
+                    </td>
+                </tr>
+                <tr>
+                    <th>遇到问题</th>
+                    <td>暂无严重问题，部分配件需补货。</td>
+                </tr>
+                <tr>
+                    <th>明日计划</th>
+                    <td>
+                        1. 测试新到的主板<br>
+                        2. 整理本周库存数据
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注</th>
+                    <td>
+                        为了演示长图功能，这里加一些占位符。<br><br>
+                        即使表格撑得很长，超出了屏幕，<br>
+                        下面的脚本也能把它完整截下来。<br>
+                        <br>
+                        (底部测试行1)<br>
+                        (底部测试行2)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="action-area">
+        <button onclick="generateScreenshot()">📸 生成长图并下载</button>
     </div>
 
-    <div class="input-panel">
-        <div class="form-row">
-            <div style="flex:2">
-                <label id="lbl-sku">SKU</label>
-                <input list="sku-options" id="sku" placeholder="A30..." autocomplete="off">
-                <datalist id="sku-options"></datalist>
-            </div>
-            <div style="flex:1">
-                <label id="lbl-success">成功数</label>
-                <input type="number" id="successQty" placeholder="0" inputmode="numeric">
-            </div>
-        </div>
+    <script>
+        // 自动填入今天的日期
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString();
 
-        <div class="form-row">
-            <div style="flex:1.5">
-                <label id="lbl-fail">失败描述</label>
-                <input type="text" id="failDesc" placeholder="X3...">
-            </div>
-            <div style="flex:1">
-                <label id="lbl-stack">堆栈</label>
-                <input type="text" id="stack" placeholder="W5" value="W5">
-            </div>
-        </div>
-        
-        <div class="form-row">
-            <div style="width:100%">
-                <label id="lbl-box">箱号记录</label>
-                <input type="text" id="boxInfo" placeholder="08x20...">
-            </div>
-        </div>
+        function generateScreenshot() {
+            // 获取我们要截图的那个 div
+            const element = document.getElementById("report-card");
 
-        <div class="form-row">
-            <button id="btn-add" class="btn btn-add" onclick="addData()">➕ 添加一行</button>
-            <button class="btn btn-clear" onclick="clearTable()">🗑️</button>
-        </div>
-
-        <input type="text" class="unfinished-input" id="unfinished" placeholder="未完成..." oninput="render()">
-        
-        <button id="btn-shot" class="btn btn-shot" onclick="toggleScreenshotMode()">📸 全屏截图模式</button>
-    </div>
-
-    <div id="lbl-preview" class="preview-header">👇 预览区域 (点击可修改)</div>
-    <div class="preview-container">
-        <table id="reportTable"></table>
-    </div>
-    
-    <div id="exit-tip">Double tap to exit / 双击退出</div>
-
-<script>
-    // ============================================
-    // ⚙️ 配置
-    // ============================================
-    const MY_SKU_LIST = ["A3040031", "A3028031", "A3028011", "A3040011", "A3050022"];
-    
-    const TEXTS = {
-        zh: { title: "日报助手 v8.0", sku: "SKU (选择或手输)", success: "成功数量", fail: "失败描述 (X3陈旧...)", stack: "堆栈号", box: "箱号记录", add: "➕ 添加一行", shot: "📸 全屏截图模式", preview: "👇 预览区域 (点击可修改)", ph_sku: "点击选择...", ph_fail: "X3陈旧 X1掉包", ph_unfin: "当日领取未完成: A3028011 X 20", t_title: "翻新工作日报", t_emp: "员工", t_sku: "SKU", t_chn: "渠道", t_tot: "总数", t_suc: "成功", t_fail: "报废", t_reas: "失败原因", t_rem: "备注", t_pkg: "包装", t_app: "外观", t_fun: "功能", t_day: "当日出货数量", t_self: "剩余自存数量", t_cum: "剩余累计数量", t_unfin: "当日领取未完成数量" },
-        en: { title: "Report Helper v8.0", sku: "SKU (Select/Type)", success: "Success Qty", fail: "Fail Desc (X3 Old...)", stack: "Stack No.", box: "Box Info", add: "➕ Add Row", shot: "📸 Screenshot Mode", preview: "👇 Preview (Click to Edit)", ph_sku: "Select...", ph_fail: "X3 Old, X1 Fake", ph_unfin: "Unfinished: A3028011 X 20", t_title: "Refurbishment Daily Report", t_emp: "Staff", t_sku: "SKU", t_chn: "CH", t_tot: "Total", t_suc: "OK", t_fail: "NG", t_reas: "Fail Reason", t_rem: "Remark", t_pkg: "Pkg", t_app: "Appr", t_fun: "Func", t_day: "Daily Output", t_self: "Remaining Stock", t_cum: "Cumulative Stock", t_unfin: "Unfinished Tasks" }
-    };
-
-    let currentLang = 'zh';
-    let records = [];
-
-    (function init() {
-        const dl = document.getElementById('sku-options');
-        MY_SKU_LIST.forEach(s => { const op = document.createElement('option'); op.value = s; dl.appendChild(op); });
-        updateUI(); render();
-    })();
-
-    function toggleLang() { currentLang = currentLang === 'zh' ? 'en' : 'zh'; updateUI(); render(); }
-
-    function updateUI() {
-        const t = TEXTS[currentLang];
-        document.getElementById('ui-title').innerText = t.title; document.getElementById('lbl-sku').innerText = t.sku; document.getElementById('lbl-success').innerText = t.success; document.getElementById('lbl-fail').innerText = t.fail; document.getElementById('lbl-stack').innerText = t.stack; document.getElementById('lbl-box').innerText = t.box; document.getElementById('btn-add').innerText = t.add; document.getElementById('btn-shot').innerText = t.shot; document.getElementById('lbl-preview').innerText = t.preview;
-        document.getElementById('sku').placeholder = t.ph_sku; document.getElementById('failDesc').placeholder = t.ph_fail; document.getElementById('unfinished').placeholder = t.ph_unfin;
-    }
-
-    function addData() {
-        const sku = document.getElementById('sku').value.trim().toUpperCase();
-        const success = parseInt(document.getElementById('successQty').value) || 0;
-        const stack = document.getElementById('stack').value;
-        const failDesc = document.getElementById('failDesc').value;
-        const boxInfo = document.getElementById('boxInfo').value;
-        if(!sku) { document.getElementById('sku').focus(); return; }
-
-        let f_pkg=0, f_app=0, f_func=0, p_str="", a_str="", f_str="";
-        const matches = failDesc.match(/[xX]\d+/g);
-        if (matches) {
-            let total = 0; matches.forEach(m => total += parseInt(m.substring(1)));
-            const lowDesc = failDesc.toLowerCase();
-            if (lowDesc.includes("掉包") || lowDesc.includes("功能") || lowDesc.includes("fake") || lowDesc.includes("func")) { f_func = total; f_str = failDesc; } else if (lowDesc.includes("包装") || lowDesc.includes("box") || lowDesc.includes("pkg")) { f_pkg = total; p_str = failDesc; } else { f_app = total; a_str = failDesc; }
+            // 调用 html2canvas
+            html2canvas(element, {
+                scale: 2, // 2倍清晰度，防止文字模糊
+                useCORS: true, // 允许跨域图片
+                backgroundColor: "#ffffff", // 强制背景为白色，防止透明
+                // 下面这两个参数确保截取完整高度，即使有滚动条
+                windowHeight: element.scrollHeight, 
+                height: element.scrollHeight
+            }).then(canvas => {
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = `工作日报_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL("image/png");
+                
+                // 触发下载
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(err => {
+                console.error("截图失败:", err);
+                alert("生成图片失败，请检查控制台报错。");
+            });
         }
-        records.push({ name: "John Young", sku, channel: "A", success, fail: f_pkg+f_app+f_func, f_pkg_str: p_str, f_app_str: a_str, f_func_str: f_str, remark: `${currentLang==='zh'?'箱号':'Box'}: ${boxInfo}\n${currentLang==='zh'?'堆栈':'Stack'}: ${stack}` });
-        document.getElementById('sku').value = ''; document.getElementById('successQty').value = ''; document.getElementById('failDesc').value = ''; document.getElementById('boxInfo').value = ''; render();
-    }
-
-    function clearTable() { if(confirm(currentLang==='zh'?"确定清空?":"Clear all?")) { records = []; document.getElementById('unfinished').value=''; render(); } }
-
-    function render() {
-        const tbl = document.getElementById('reportTable');
-        const unfin = document.getElementById('unfinished').value;
-        const t = TEXTS[currentLang];
-        let h = `<tr><td colspan="10" class="title-row" contenteditable="true">${t.t_title}</td></tr><tr><td rowspan="2" class="header-bg col-m">${t.t_emp}</td><td rowspan="2" class="header-bg col-m">${t.t_sku}</td><td rowspan="2" class="header-bg col-s">${t.t_chn}</td><td rowspan="2" class="header-bg col-s">${t.t_tot}</td><td rowspan="2" class="header-bg col-s">${t.t_suc}</td><td rowspan="2" class="header-bg col-s">${t.t_fail}</td><td colspan="3" class="header-bg">${t.t_reas}</td><td rowspan="2" class="header-bg col-l">${t.t_rem}</td></tr><tr><td class="header-bg col-s">${t.t_pkg}</td><td class="header-bg col-s">${t.t_app}</td><td class="header-bg col-s">${t.t_fun}</td></tr>`;
-        if(records.length===0) h+=`<tr><td colspan="10" style="padding:20px;color:#ccc;font-size:12px">...</td></tr>`;
-        else records.forEach(r => { h += `<tr><td contenteditable="true">${r.name}</td><td contenteditable="true">${r.sku}</td><td contenteditable="true">${r.channel}</td><td contenteditable="true">${r.success+r.fail}</td><td contenteditable="true" style="font-weight:bold">${r.success}</td><td contenteditable="true">${r.fail}</td><td contenteditable="true">${r.f_pkg_str}</td><td contenteditable="true">${r.f_app_str}</td><td contenteditable="true">${r.f_func_str}</td><td contenteditable="true" style="text-align:left;white-space:pre-wrap">${r.remark}</td></tr>`; });
-        const sum = {}; records.forEach(r => { if(!sum[r.sku]) sum[r.sku]=0; sum[r.sku]+=r.success; });
-        h += `<tr><td colspan="10" style="border:none;height:10px"></td></tr><tr><td class="header-bg">${t.t_sku}</td><td class="header-bg" colspan="2">${t.t_day}</td><td class="header-bg" colspan="3">${t.t_self}</td><td class="header-bg" colspan="4">${t.t_cum}</td></tr>`;
-        for(let s in sum) h+= `<tr><td contenteditable="true">${s}</td><td contenteditable="true" colspan="2">${sum[s]}</td><td contenteditable="true" colspan="3"></td><td contenteditable="true" colspan="4"></td></tr>`;
-        if(unfin || records.length>0) h+=`<tr><td colspan="10" style="border:none;height:10px"></td></tr><tr><td class="header-bg" colspan="2">${t.t_unfin}</td><td contenteditable="true" colspan="8" style="text-align:left;font-weight:bold;padding-left:10px">${unfin}</td></tr>`;
-        tbl.innerHTML = h;
-    }
-
-    // === 自动隐身逻辑 ===
-    function toggleScreenshotMode() {
-        document.body.classList.toggle('screenshot-mode');
-        const tip = document.getElementById('exit-tip');
-        
-        if (document.body.classList.contains('screenshot-mode')) {
-            // 1. 显示提示
-            tip.style.opacity = '1';
-            
-            // 2. 设定3秒后消失
-            setTimeout(() => {
-                tip.style.opacity = '0';
-            }, 3000); // 3000毫秒 = 3秒
-        } else {
-            tip.style.opacity = '0';
-        }
-    }
-    
-    document.addEventListener('dblclick', function() { if(document.body.classList.contains('screenshot-mode')) toggleScreenshotMode(); });
-</script>
+    </script>
 </body>
 </html>
