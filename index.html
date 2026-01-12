@@ -3,164 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工作日报生成器</title>
-    
+    <title>工作日报生成器 (带长截图)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <style>
+        /* 全局样式 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0f2f5; /* 网页背景色（浅灰） */
+            background-color: #f4f6f8;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* 这是我们要截图的区域样式 */
-        #report-card {
-            background-color: #ffffff; /* 日报卡片背景必须是白色 */
-            width: 100%;
-            max-width: 600px; /* 限制最大宽度，手机上看比较舒服 */
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            box-sizing: border-box; /* 确保padding不会撑大宽度 */
-        }
-
-        /* 简单的表格样式 */
-        h2 {
-            text-align: center;
+            padding: 15px;
             color: #333;
-            margin-bottom: 20px;
-        }
-        
-        .date-info {
-            text-align: right;
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 15px;
         }
 
+        h2 { text-align: center; color: #333; }
+
+        /* 输入区域样式 */
+        .input-group {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box; /* 确保不撑破容器 */
+            font-size: 14px;
+        }
+
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        /* 按钮通用样式 */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; display: none; /* 默认隐藏保存按钮 */ }
+        
+        /* === 核心：生成的日报预览区域 (也是被截图的区域) === */
+        #preview-area {
+            background: white;
+            padding: 25px; /* 图片周边的白边 */
+            border-radius: 0; /* 截图时直角比较正式 */
+            margin-bottom: 20px;
+            display: none; /* 默认隐藏，点击生成后显示 */
+        }
+
+        /* 表格样式 */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            border: 2px solid #333; /* 外框加粗 */
         }
 
         th, td {
-            border: 1px solid #e1e4e8;
-            padding: 12px 8px;
-            text-align: left;
-            font-size: 14px;
+            border: 1px solid #666;
+            padding: 12px;
+            vertical-align: top;
         }
 
         th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            width: 30%; /* 调整列宽比例 */
-        }
-
-        /* 按钮区域样式 */
-        .action-area {
-            margin-top: 30px;
+            background-color: #f0f0f0;
+            width: 25%;
+            white-space: nowrap;
             text-align: center;
         }
 
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
-            cursor: pointer;
-            transition: background-color 0.2s;
+        td {
+            line-height: 1.6;
         }
-
-        button:active {
-            background-color: #0056b3;
-            transform: scale(0.98);
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .report-date {
+            text-align: right;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #666;
         }
     </style>
 </head>
 <body>
 
-    <div id="report-card">
-        <h2>📑 每日工作报告</h2>
-        <div class="date-info">日期：<span id="current-date"></span></div>
+    <div class="input-group">
+        <h2>✏️ 填写日报</h2>
+        
+        <label>今日工作内容 (换行即分条)：</label>
+        <textarea id="input-work" placeholder="1. 修复了耳机蓝牙连接不稳定的问题&#10;2. 完成了20台设备的检测..."></textarea>
 
-        <table>
-            <tbody>
-                <tr>
-                    <th>工作内容</th>
-                    <td>
-                        1. 完成耳机翻新流程优化<br>
-                        2. Python 脚本调试<br>
-                        3. 这里内容可以写很长很长...
-                    </td>
-                </tr>
-                <tr>
-                    <th>遇到问题</th>
-                    <td>暂无严重问题，部分配件需补货。</td>
-                </tr>
-                <tr>
-                    <th>明日计划</th>
-                    <td>
-                        1. 测试新到的主板<br>
-                        2. 整理本周库存数据
-                    </td>
-                </tr>
-                <tr>
-                    <th>备注</th>
-                    <td>
-                        为了演示长图功能，这里加一些占位符。<br><br>
-                        即使表格撑得很长，超出了屏幕，<br>
-                        下面的脚本也能把它完整截下来。<br>
-                        <br>
-                        (底部测试行1)<br>
-                        (底部测试行2)
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <label>遇到的问题/困难：</label>
+        <textarea id="input-issue" placeholder="暂无，或者填写具体缺少什么配件..."></textarea>
+
+        <label>明日计划：</label>
+        <textarea id="input-plan" placeholder="1. 继续清理库存..."></textarea>
+
+        <button class="btn btn-primary" onclick="generateTable()">👇 1. 生成表格预览</button>
     </div>
-    <div class="action-area">
-        <button onclick="generateScreenshot()">📸 生成长图并下载</button>
+
+    <div id="preview-area">
+        <div id="capture-target">
+            <div class="report-header">
+                <h2 style="margin:0;">每日工作报告</h2>
+            </div>
+            <div class="report-date">日期：<span id="date-display"></span></div>
+            
+            <table>
+                <tbody>
+                    <tr>
+                        <th>今日工作</th>
+                        <td id="td-work"></td>
+                    </tr>
+                    <tr>
+                        <th>问题与困难</th>
+                        <td id="td-issue"></td>
+                    </tr>
+                    <tr>
+                        <th>明日计划</th>
+                        <td id="td-plan"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <button id="btn-download" class="btn btn-success" onclick="saveAsImage()">📸 2. 保存为长图片</button>
 
     <script>
-        // 自动填入今天的日期
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString();
+        // 初始化日期
+        document.getElementById('date-display').innerText = new Date().toLocaleDateString();
 
-        function generateScreenshot() {
-            // 获取我们要截图的那个 div
-            const element = document.getElementById("report-card");
+        // 把文本域里的换行符转换成 HTML 的 <br>
+        function formatText(text) {
+            if (!text) return "无";
+            return text.replace(/\n/g, '<br>');
+        }
 
-            // 调用 html2canvas
+        // 1. 生成表格功能
+        function generateTable() {
+            // 获取输入
+            const work = document.getElementById('input-work').value;
+            const issue = document.getElementById('input-issue').value;
+            const plan = document.getElementById('input-plan').value;
+
+            // 填充表格
+            document.getElementById('td-work').innerHTML = formatText(work);
+            document.getElementById('td-issue').innerHTML = formatText(issue);
+            document.getElementById('td-plan').innerHTML = formatText(plan);
+
+            // 显示预览区域和下载按钮
+            document.getElementById('preview-area').style.display = 'block';
+            document.getElementById('btn-download').style.display = 'block';
+
+            // 自动滚动到底部，方便查看
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        // 2. 截图下载功能 (核心逻辑)
+        function saveAsImage() {
+            const element = document.getElementById('capture-target'); // 只截取白色卡片内部，不截取灰色背景
+
             html2canvas(element, {
-                scale: 2, // 2倍清晰度，防止文字模糊
-                useCORS: true, // 允许跨域图片
-                backgroundColor: "#ffffff", // 强制背景为白色，防止透明
-                // 下面这两个参数确保截取完整高度，即使有滚动条
-                windowHeight: element.scrollHeight, 
-                height: element.scrollHeight
+                scale: 2, // 2倍清晰度
+                useCORS: true,
+                backgroundColor: "#ffffff", // 确保背景是白的
+                windowHeight: element.scrollHeight, // 关键：确保截取完整高度
             }).then(canvas => {
                 // 创建下载链接
                 const link = document.createElement('a');
-                link.download = `工作日报_${new Date().toISOString().slice(0,10)}.png`;
+                const dateStr = new Date().toISOString().slice(0,10);
+                link.download = `工作日报_${dateStr}.png`;
                 link.href = canvas.toDataURL("image/png");
-                
-                // 触发下载
-                document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link);
             }).catch(err => {
-                console.error("截图失败:", err);
-                alert("生成图片失败，请检查控制台报错。");
+                alert("生成图片失败，请重试");
+                console.error(err);
             });
         }
     </script>
