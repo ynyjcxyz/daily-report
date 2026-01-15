@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>日报助手 V8.3 (多箱追加)</title>
+    <title>日报助手 V8.15</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* === V8.3 样式 === */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 12px; background-color: #f2f4f8; color: #333; margin: 0; }
+        /* === V8.15 样式 === */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 12px; background-color: #f2f4f8; color: #333; margin: 0; padding-bottom: 80px; }
         
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         h3 { margin: 0; font-size: 18px; color: #222; }
         .lang-btn { background: #e1e1e1; border: none; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #555; cursor: pointer; }
         
@@ -18,228 +18,345 @@
         .form-row { display: flex; gap: 12px; margin-bottom: 14px; }
         label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 6px; }
         
-        input, select { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #f9f9f9; -webkit-appearance: none; }
+        input { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #f9f9f9; -webkit-appearance: none; }
         input:focus { border-color: #007AFF; background: white; outline: none; }
         
-        /* 箱号选择器样式 (调整为点击闪烁) */
-        .box-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 8px;
-            margin-bottom: 15px;
-            background: #f0f4f8;
-            padding: 10px;
-            border-radius: 10px;
-        }
-        .box-btn {
-            background: white;
-            border: 1px solid #cce0ff;
-            color: #0051ff;
-            padding: 8px 4px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.1s; /* 快速响应 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            user-select: none; /* 防止长按选中文字 */
-        }
-        .box-btn:active { background: #007AFF; color: white; transform: scale(0.95); }
-        .box-btn span { display: block; }
-        .box-id { font-weight: bold; font-size: 14px; margin-bottom: 2px; }
-        .box-size { font-size: 10px; opacity: 0.8; }
+        .grid-selector { display: grid; gap: 8px; margin-bottom: 15px; background: #f0f4f8; padding: 8px; border-radius: 10px; }
+        .sku-grid { grid-template-columns: repeat(2, 1fr); }
+        .box-grid { grid-template-columns: repeat(3, 1fr); }
+        .fail-type-grid { grid-template-columns: repeat(3, 1fr); padding: 5px; background: transparent; margin-bottom: 5px; }
 
-        .btn { border: none; height: 48px; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; color: white; width: 100%; transition: transform 0.1s; }
+        .select-btn {
+            background: white; border: 1px solid #cce0ff; color: #333; padding: 8px; border-radius: 8px;
+            font-size: 13px; font-weight: 500; cursor: pointer; text-align: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 40px; user-select: none; transition: all 0.1s;
+        }
+        .select-btn:active { transform: scale(0.96); }
+        .select-btn small { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+        .btn-highlight { background-color: #dbeeff !important; border-color: #007AFF !important; color: #007AFF !important; font-weight: bold; }
+
+        .type-btn { border: 1px solid #ddd; color: #555; background: #fff; font-size: 12px; padding: 6px; border-radius: 20px; font-weight: bold; }
+        .type-btn:active { background: #333; color: white; }
+
+        .btn { border: none; height: 44px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; color: white; width: 100%; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn:active { transform: scale(0.98); }
         .btn-add { background-color: #007AFF; flex: 2; }
         .btn-clear { background-color: #FF3B30; flex: 1; opacity: 0.8; }
-        .btn-shot { background-color: #34C759; margin-top: 20px; box-shadow: 0 4px 10px rgba(52, 199, 89, 0.3); }
         
-        .preview-header { font-size: 14px; color: #888; margin-bottom: 8px; font-weight: bold; }
+        .action-bar { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-shot { background-color: #34C759; box-shadow: 0 4px 10px rgba(52, 199, 89, 0.3); }
+        .btn-copy { background-color: #5856D6; box-shadow: 0 4px 10px rgba(88, 86, 214, 0.3); }
+
         .preview-container { background: white; padding: 10px; border-radius: 4px; overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; table-layout: fixed; min-width: 100%; }
-        th, td { border: 1px solid #999; padding: 5px 2px; text-align: center; vertical-align: middle; word-break: break-all; line-height: 1.3; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; min-width: 100%; }
+        th, td { border: 1px solid #999; padding: 6px 4px; text-align: center; vertical-align: middle; line-height: 1.3; }
         .header-bg { background-color: #D9E1F2; font-weight: bold; }
-        .title-row { font-size: 14px; font-weight: bold; height: 32px; border: none; text-align: center; }
-        .col-s { width: 10%; } .col-m { width: 18%; } .col-l { width: 22%; }
+        .title-row { font-size: 14px; font-weight: bold; height: 30px; border: none; }
         .unfinished-input { border-left: 4px solid #FF9500; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <h3 id="ui-title">日报助手 V8.3</h3>
+        <h3 id="ui-title">日报助手 V8.15</h3>
         <button class="lang-btn" onclick="toggleLang()">🌐 中/En</button>
     </div>
 
     <div class="input-panel">
+        
+        <label id="lbl-sku-sel">🎧 SKU 选择：</label>
+        <div class="grid-selector sku-grid" id="sku-buttons"></div>
+        <input type="hidden" id="sku">
+        <div id="sku-display" style="text-align:center; color:#007AFF; font-weight:bold; margin-bottom:10px; height:20px; font-size:14px;"></div>
+
         <div class="form-row">
-            <div style="flex:2">
-                <label id="lbl-sku">SKU</label>
-                <input list="sku-options" id="sku" placeholder="A30..." autocomplete="off">
-                <datalist id="sku-options"></datalist>
-            </div>
             <div style="flex:1">
                 <label id="lbl-success">成功数</label>
                 <input type="number" id="successQty" placeholder="0" inputmode="numeric">
             </div>
-        </div>
-
-        <div class="form-row">
-            <div style="flex:1.5">
-                <label id="lbl-fail">失败描述</label>
-                <input type="text" id="failDesc" placeholder="X3...">
-            </div>
             <div style="flex:1">
-                <label id="lbl-stack">堆栈</label>
+                <label id="lbl-stack">堆栈号</label>
                 <input type="text" id="stack" placeholder="W5" value="W5">
             </div>
         </div>
-        
-        <label id="lbl-box-select" style="margin-top:10px">📦 点击尺寸追加箱号：</label>
-        <div class="box-selector" id="box-buttons"></div>
 
+        <label id="lbl-box-select">📦 追加箱号 (自动加X)：</label>
+        <div class="grid-selector box-grid" id="box-buttons"></div>
         <div class="form-row">
             <div style="width:100%">
-                <label id="lbl-box">箱号记录 (追加模式)</label>
-                <input type="text" id="boxInfo" placeholder="例如: 2号箱X10...">
+                <input type="text" id="boxInfo" placeholder="箱号记录..." style="font-size:14px;">
+            </div>
+        </div>
+
+        <label id="lbl-fail">❌ 混合失败记录 (点按钮插入)：</label>
+        <div class="grid-selector fail-type-grid">
+            <div id="btn-tag-pkg" class="select-btn type-btn" onclick="insertTag('pkg')">📦 包装:</div>
+            <div id="btn-tag-app" class="select-btn type-btn" onclick="insertTag('app')">👀 外观:</div>
+            <div id="btn-tag-func" class="select-btn type-btn" onclick="insertTag('func')">⚙️ 功能:</div>
+        </div>
+        
+        <div class="form-row">
+            <div style="width:100%">
+                <input type="text" id="failDesc" placeholder="例如: 外观:X3 陈旧，包装:X1 掉包" style="font-size:14px;">
             </div>
         </div>
 
         <div class="form-row">
-            <button id="btn-add" class="btn btn-add" onclick="addData()">➕ 添加一行</button>
+            <button id="btn-add" class="btn btn-add" onclick="addData()">➕ 添加记录</button>
             <button class="btn btn-clear" onclick="clearTable()">🗑️</button>
         </div>
 
+        <label id="lbl-unfin-sel" style="margin-top:20px; border-top:1px dashed #ddd; padding-top:10px;">⚠️ 未完成 (点击追加)：</label>
+        <div class="grid-selector sku-grid" id="unfin-sku-buttons" style="margin-bottom:5px;"></div>
         <input type="text" class="unfinished-input" id="unfinished" placeholder="未完成..." oninput="render()">
         
-        <button id="btn-shot" class="btn btn-shot" onclick="saveReportAsImage()">📸 保存为长图片</button>
+        <div class="action-bar">
+            <button id="btn-shot" class="btn btn-shot" onclick="saveReportAsImage()">📸 存长图</button>
+            <button id="btn-copy" class="btn btn-copy" onclick="copyTextReport()">📋 复制文字</button>
+        </div>
     </div>
 
-    <div id="lbl-preview" class="preview-header">👇 预览区域 (点击可修改)</div>
-    
+    <div id="lbl-preview" style="font-size:12px; color:#999; margin-bottom:5px;">👇 预览区 (下班照着抄)</div>
     <div class="preview-container" id="capture-area">
         <table id="reportTable"></table>
     </div>
     
 <script>
-    // ⚙️ 箱号数据配置
+    // ⚙️ 配置区
+    const SKU_DATA = [
+        { code: "A3004Z11", name: "Q20i 黑色", name_en: "Q20i Black" },
+        { code: "A3004Z21", name: "Q20i 白色", name_en: "Q20i White" },
+        { code: "A3004Z31", name: "Q20i 蓝色", name_en: "Q20i Blue" },
+        { code: "A3035Z11", name: "Space One 黑色", name_en: "Space One Black" },
+        { code: "A3035Z31", name: "Space One 蓝色", name_en: "Space One Blue" },
+        { code: "A3028011", name: "Q30 黑色", name_en: "Q30 Black" },
+        { code: "A3028021", name: "Q30 白色", name_en: "Q30 White" },
+        { code: "A3028031", name: "Q30 蓝色", name_en: "Q30 Blue" },
+        { code: "A3028051", name: "Q30 粉色", name_en: "Q30 Pink" },
+        { code: "A3025015", name: "Q20 黑色", name_en: "Q20 Black" },
+        { code: "A3025045", name: "Q20 银色", name_en: "Q20 Silver" },
+        { code: "A3005ZA1", name: "Q11i 黑色", name_en: "Q11i Black" },
+        { code: "A3062Z11", name: "Space One Pro 黑色", name_en: "Space One Pro Black" }
+    ];
+    
     const BOX_DATA = [
-        { id: "1", size: "10*10*10" },
-        { id: "2", size: "16*12*6" },
-        { id: "3", size: "18*10*10" },
-        { id: "4", size: "17*9*13" },
-        { id: "5", size: "18*14*12" },
-        { id: "6", size: "20*14*14" },
-        { id: "7", size: "18*18*14" },
-        { id: "8", size: "17*17*17" },
-        { id: "9", size: "24*16*14" },
-        { id: "10", size: "20*20*20" },
-        { id: "11", size: "18*14*10" }
+        { id: "1", size: "10*10" }, { id: "2", size: "16*12" }, { id: "3", size: "18*10" },
+        { id: "4", size: "17*9" }, { id: "5", size: "18*14" }, { id: "6", size: "20*14" },
+        { id: "7", size: "18*18" }, { id: "8", size: "17*17" }, { id: "9", size: "24*16" },
+        { id: "10", size: "20*20" }, { id: "11", size: "18*14" }
     ];
 
-    const MY_SKU_LIST = ["A3040031", "A3028031", "A3028011", "A3040011", "A3050022"];
-    
     const TEXTS = {
-        zh: { title: "日报助手 V8.3", sku: "SKU", success: "成功数量", fail: "失败描述", stack: "堆栈号", box_sel: "📦 点击尺寸追加箱号：", box: "箱号记录", add: "➕ 添加一行", shot: "📸 保存为长图片", preview: "👇 预览区域", ph_box: "2号箱X10..." },
-        en: { title: "Report Helper V8.3", sku: "SKU", success: "Success Qty", fail: "Fail Desc", stack: "Stack No.", box_sel: "📦 Tap Size to Append Box:", box: "Box Info", add: "➕ Add Row", shot: "📸 Save Image", preview: "👇 Preview", ph_box: "Box #2 X10..." }
+        zh: { 
+            title: "日报助手 V8.15", sku_sel: "🎧 SKU 选择：", success: "成功数", stack: "堆栈号", box_sel: "📦 追加箱号：", fail: "❌ 混合失败记录 (点按钮插入)：", add: "➕ 添加记录", shot: "📸 存长图", copy: "📋 复制文字", ph_box: "例如: 2号箱X10...", ph_fail: "外观:X3 陈旧，包装:X1 掉包",
+            tag_pkg: "📦 包装:", tag_app: "👀 外观:", tag_func: "⚙️ 功能:", preview: "👇 预览区 (下班照着抄)",
+            unfin_sel: "⚠️ 未完成 (点击追加):", ph_unfin: "A3028011 X 20..."
+        },
+        en: { 
+            title: "Report Helper V8.15", sku_sel: "🎧 Select SKU:", success: "Success", stack: "Stack", box_sel: "📦 Append Box:", fail: "❌ Mixed Failures (Tap to Insert):", add: "➕ Add Row", shot: "📸 Save Img", copy: "📋 Copy Text", ph_box: "Box #2 X10...", ph_fail: "Appr:X3 Old, Pkg:X1 Fake",
+            tag_pkg: "📦 Pkg:", tag_app: "👀 Appr:", tag_func: "⚙️ Func:", preview: "👇 Preview",
+            unfin_sel: "⚠️ Unfinished (Tap to append):", ph_unfin: "A3028011 X 20..."
+        }
     };
     
     const TABLE_TEXTS = {
-        zh: { t_title: "翻新工作日报", t_emp: "员工", t_sku: "SKU", t_chn: "渠道", t_tot: "总数", t_suc: "成功", t_fail: "报废", t_reas: "失败原因", t_rem: "备注", t_pkg: "包装", t_app: "外观", t_fun: "功能", t_day: "当日出货数量", t_self: "剩余自存数量", t_cum: "剩余累计数量", t_unfin: "当日领取未完成数量" },
-        en: { t_title: "Refurbishment Daily Report", t_emp: "Staff", t_sku: "SKU", t_chn: "CH", t_tot: "Total", t_suc: "OK", t_fail: "NG", t_reas: "Fail Reason", t_rem: "Remark", t_pkg: "Pkg", t_app: "Appr", t_fun: "Func", t_day: "Daily Output", t_self: "Remaining Stock", t_cum: "Cumulative Stock", t_unfin: "Unfinished Tasks" }
+        zh: { t_title: "翻新工作日报", t_emp: "员工", t_sku: "SKU", t_chn: "渠道", t_tot: "总数", t_suc: "成功", t_fail: "报废", t_reas: "失败原因", t_rem: "备注", t_pkg: "包装", t_app: "外观", t_fun: "功能", t_day: "当日出货", t_self: "自存", t_cum: "累计", t_unfin: "未完成" },
+        en: { t_title: "Daily Report", t_emp: "Staff", t_sku: "SKU", t_chn: "CH", t_tot: "Total", t_suc: "OK", t_fail: "NG", t_reas: "Fail Reason", t_rem: "Remark", t_pkg: "Pkg", t_app: "Appr", t_fun: "Func", t_day: "Output", t_self: "Stock", t_cum: "Cumul", t_unfin: "Unfinished" }
     };
 
     let currentLang = 'zh';
     let records = [];
 
     (function init() {
-        const dl = document.getElementById('sku-options');
-        MY_SKU_LIST.forEach(s => { const op = document.createElement('option'); op.value = s; dl.appendChild(op); });
+        renderSkuButtons();
         renderBoxButtons();
+        renderUnfinishedSkuButtons(); 
         updateUI(); render();
     })();
 
-    function renderBoxButtons() {
-        const container = document.getElementById('box-buttons');
-        const sortedBoxes = BOX_DATA.sort((a,b) => parseInt(a.id) - parseInt(b.id));
-        
-        sortedBoxes.forEach(box => {
+    function insertTag(type) {
+        let tagName = "";
+        if (currentLang === 'zh') {
+            if (type === 'pkg') tagName = "包装"; if (type === 'app') tagName = "外观"; if (type === 'func') tagName = "功能";
+        } else {
+            if (type === 'pkg') tagName = "Pkg"; if (type === 'app') tagName = "Appr"; if (type === 'func') tagName = "Func";
+        }
+        const input = document.getElementById('failDesc');
+        const prefix = `${tagName}:`;
+        if (input.value.trim() !== "") {
+            const val = input.value.trim();
+            if (!val.endsWith('，') && !val.endsWith(',') && !val.endsWith(':')) {
+                input.value += "，";
+            }
+        }
+        input.value += prefix;
+        input.focus();
+    }
+
+    function renderUnfinishedSkuButtons() {
+        const container = document.getElementById('unfin-sku-buttons');
+        container.innerHTML = '';
+        SKU_DATA.forEach(item => {
             const btn = document.createElement('div');
-            btn.className = 'box-btn';
-            btn.onclick = () => selectBox(box.id, box.size, btn);
-            btn.innerHTML = `<span class="box-size">${box.size}</span><span class="box-id">#${box.id}</span>`;
+            btn.className = 'select-btn'; 
+            const displayName = currentLang === 'zh' ? item.name : (item.name_en || item.name);
+            btn.innerHTML = `<span>${displayName}</span><small>${item.code}</small>`;
+            btn.onclick = () => addToUnfinished(item);
             container.appendChild(btn);
         });
     }
 
-    // === V8.3 核心修改：追加模式 ===
-    function selectBox(id, size, btnElem) {
-        const input = document.getElementById('boxInfo');
-        const prefix = currentLang === 'zh' ? '号箱' : ' Box';
-        const newText = `${id}${prefix}`;
-
-        // 闪烁一下视觉反馈
-        const originalBg = btnElem.style.backgroundColor;
-        btnElem.style.backgroundColor = '#dbeeff';
-        setTimeout(() => { btnElem.style.backgroundColor = originalBg; }, 150);
-
-        // 逻辑：如果输入框不为空，且没用逗号结尾，就自动加个逗号
+    function addToUnfinished(item) {
+        const input = document.getElementById('unfinished');
+        const outputText = item.code; 
         if (input.value.trim() !== "") {
             const val = input.value.trim();
-            const lastChar = val.slice(-1);
-            if (lastChar !== '，' && lastChar !== ',') {
-                input.value += "，"; // 智能补逗号
+            if (!val.endsWith('，') && !val.endsWith(',')) {
+                input.value += "，";
             }
         }
-        
-        input.value += newText;
-        
-        // 关键：自动聚焦，方便立刻输入数量（比如 X12）
+        input.value += `${outputText} X `;
+        input.focus();
+        render(); 
+    }
+
+    function renderSkuButtons() {
+        const container = document.getElementById('sku-buttons');
+        container.innerHTML = '';
+        SKU_DATA.forEach(item => {
+            const btn = document.createElement('div');
+            btn.className = 'select-btn';
+            btn.onclick = () => selectSku(item.code, item.name, btn);
+            const displayName = currentLang === 'zh' ? item.name : (item.name_en || item.name);
+            btn.innerHTML = `<span>${displayName}</span><small>${item.code}</small>`;
+            container.appendChild(btn);
+        });
+    }
+
+    function renderBoxButtons() {
+        const container = document.getElementById('box-buttons');
+        container.innerHTML = '';
+        BOX_DATA.sort((a,b) => parseInt(a.id) - parseInt(b.id)).forEach(box => {
+            const btn = document.createElement('div');
+            btn.className = 'select-btn';
+            btn.onclick = () => selectBox(box.id, btn);
+            btn.innerHTML = `<span>#${box.id}</span><small>${box.size}</small>`;
+            container.appendChild(btn);
+        });
+    }
+
+    function selectSku(code, name, btnElem) {
+        document.getElementById('sku').value = code;
+        document.getElementById('sku-display').innerText = `已选: ${name}`;
+        document.querySelectorAll('#sku-buttons .select-btn').forEach(b => b.classList.remove('btn-highlight'));
+        btnElem.classList.add('btn-highlight');
+        document.getElementById('successQty').focus();
+    }
+
+    function selectBox(id, btnElem) {
+        const input = document.getElementById('boxInfo');
+        const prefix = currentLang === 'zh' ? '号箱' : ' Box';
+        btnElem.classList.add('btn-highlight');
+        setTimeout(() => btnElem.classList.remove('btn-highlight'), 150);
+        if (input.value.trim() !== "" && !input.value.trim().endsWith('，')) input.value += "，";
+        input.value += `${id}${prefix}X`;
         input.focus();
     }
 
-    function toggleLang() { currentLang = currentLang === 'zh' ? 'en' : 'zh'; updateUI(); render(); }
-
+    function toggleLang() { 
+        currentLang = currentLang === 'zh' ? 'en' : 'zh'; 
+        updateUI(); render(); 
+        renderSkuButtons(); 
+        renderUnfinishedSkuButtons(); 
+    }
+    
     function updateUI() {
         const t = TEXTS[currentLang];
-        document.getElementById('ui-title').innerText = t.title; document.getElementById('lbl-sku').innerText = t.sku; document.getElementById('lbl-success').innerText = t.success; document.getElementById('lbl-fail').innerText = t.fail; document.getElementById('lbl-stack').innerText = t.stack; document.getElementById('lbl-box-select').innerText = t.box_sel; document.getElementById('lbl-box').innerText = t.box; document.getElementById('btn-add').innerText = t.add; document.getElementById('btn-shot').innerText = t.shot; document.getElementById('lbl-preview').innerText = t.preview; document.getElementById('boxInfo').placeholder = t.ph_box;
+        document.getElementById('ui-title').innerText = t.title; 
+        document.getElementById('lbl-sku-sel').innerText = t.sku_sel; 
+        document.getElementById('lbl-success').innerText = t.success; 
+        document.getElementById('lbl-stack').innerText = t.stack; 
+        document.getElementById('lbl-box-select').innerText = t.box_sel; 
+        document.getElementById('lbl-fail').innerText = t.fail; 
+        document.getElementById('btn-add').innerText = t.add; 
+        document.getElementById('btn-shot').innerText = t.shot; 
+        document.getElementById('btn-copy').innerText = t.copy; 
+        document.getElementById('boxInfo').placeholder = t.ph_box; 
+        document.getElementById('failDesc').placeholder = t.ph_fail;
+        document.getElementById('lbl-preview').innerText = t.preview;
+        document.getElementById('lbl-unfin-sel').innerText = t.unfin_sel;
+        document.getElementById('unfinished').placeholder = t.ph_unfin;
+
+        document.getElementById('btn-tag-pkg').innerText = t.tag_pkg;
+        document.getElementById('btn-tag-app').innerText = t.tag_app;
+        document.getElementById('btn-tag-func').innerText = t.tag_func;
     }
 
+    // 🚀 核心修改：精准文本提取 + 统计逻辑
     function addData() {
-        const sku = document.getElementById('sku').value.trim().toUpperCase();
+        const sku = document.getElementById('sku').value;
         const success = parseInt(document.getElementById('successQty').value) || 0;
         const stack = document.getElementById('stack').value;
-        const failDesc = document.getElementById('failDesc').value;
+        // 替换中文符号
+        let failDesc = document.getElementById('failDesc').value.trim().replace(/：/g, ':');
         const boxInfo = document.getElementById('boxInfo').value;
-        if(!sku) { document.getElementById('sku').focus(); return; }
+        
+        if(!sku) { alert("Please select SKU"); return; }
 
-        let f_pkg=0, f_app=0, f_func=0, p_str="", a_str="", f_str="";
-        const matches = failDesc.match(/[xX]\d+/g);
-        if (matches) {
-            let total = 0; matches.forEach(m => total += parseInt(m.substring(1)));
-            const lowDesc = failDesc.toLowerCase();
-            if (lowDesc.includes("掉包") || lowDesc.includes("功能") || lowDesc.includes("fake") || lowDesc.includes("func")) { f_func = total; f_str = failDesc; } else if (lowDesc.includes("包装") || lowDesc.includes("box") || lowDesc.includes("pkg")) { f_pkg = total; p_str = failDesc; } else { f_app = total; a_str = failDesc; }
-        }
+        let f_pkg=0, f_app=0, f_func=0;
+        let p_str="", a_str="", f_str="";
+
+        // 1. 按逗号分割成片段
+        const segments = failDesc.split(/[,，]/);
+
+        segments.forEach(seg => {
+            seg = seg.trim();
+            if (!seg) return;
+
+            let lowerSeg = seg.toLowerCase();
+            let qty = 0;
+            // 尝试提取数字 (用于统计总报废数)
+            const numMatch = seg.match(/[xX]?(\d+)/);
+            if (numMatch) qty = parseInt(numMatch[1]);
+
+            // 去掉前缀（如果有），只保留描述内容
+            // 例如 "包装:X1 掉包" -> "X1 掉包"
+            let cleanText = seg.replace(/^(包装|外观|功能|Pkg|Appr|Func)[:\s]*/i, "");
+
+            if (lowerSeg.startsWith('包装') || lowerSeg.startsWith('pkg')) {
+                f_pkg += qty;
+                p_str += (p_str?"，":"") + cleanText;
+            } else if (lowerSeg.startsWith('功能') || lowerSeg.startsWith('func')) {
+                f_func += qty;
+                f_str += (f_str?"，":"") + cleanText;
+            } else if (lowerSeg.startsWith('外观') || lowerSeg.startsWith('app')) {
+                f_app += qty;
+                a_str += (a_str?"，":"") + cleanText;
+            } else {
+                // 如果没有标签，默认为外观
+                f_app += qty;
+                a_str += (a_str?"，":"") + cleanText;
+            }
+        });
         
         const boxLabel = currentLang==='zh' ? '箱号' : 'Box';
         const stackLabel = currentLang==='zh' ? '堆栈' : 'Stack';
         
-        records.push({ name: "John Young", sku, channel: "A", success, fail: f_pkg+f_app+f_func, f_pkg_str: p_str, f_app_str: a_str, f_func_str: f_str, remark: `${boxLabel}: ${boxInfo}\n${stackLabel}: ${stack}` });
+        records.push({ 
+            name: "John Young", sku, channel: "A", 
+            success, fail: f_pkg+f_app+f_func, 
+            f_pkg_str: p_str, f_app_str: a_str, f_func_str: f_str, 
+            remark: `${boxLabel}: ${boxInfo}\n${stackLabel}: ${stack}` 
+        });
         
-        document.getElementById('sku').value = ''; 
-        document.getElementById('successQty').value = ''; 
-        document.getElementById('failDesc').value = ''; 
-        document.getElementById('boxInfo').value = ''; 
+        document.getElementById('successQty').value = '';
+        document.getElementById('failDesc').value = '';
+        document.getElementById('boxInfo').value = '';
         render();
     }
 
-    function clearTable() { if(confirm("Clear all?")) { records = []; document.getElementById('unfinished').value=''; render(); } }
+    function clearTable() { if(confirm("Clear?")) { records = []; document.getElementById('unfinished').value=''; render(); } }
 
     function render() {
         const tbl = document.getElementById('reportTable');
@@ -257,15 +374,27 @@
 
     function saveReportAsImage() {
         const element = document.getElementById("capture-area");
-        html2canvas(element, {
-            scale: 2, useCORS: true, backgroundColor: "#ffffff",
-            windowHeight: element.scrollHeight, height: element.scrollHeight
-        }).then(canvas => {
+        html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#ffffff", windowHeight: element.scrollHeight, height: element.scrollHeight }).then(canvas => {
             const link = document.createElement('a');
             link.download = `WorkReport_${new Date().toISOString().slice(0,10)}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
         });
+    }
+
+    function copyTextReport() {
+        let text = "📅 " + (currentLang==='zh' ? "工作日报" : "Daily Report") + "\n------------------\n";
+        if(records.length === 0) { alert("No data"); return; }
+        records.forEach(r => {
+            text += `🔹 ${r.sku} | OK:${r.success} | NG:${r.fail}\n`;
+            if(r.f_pkg_str) text += `   [Pkg]: ${r.f_pkg_str}\n`;
+            if(r.f_app_str) text += `   [App]: ${r.f_app_str}\n`;
+            if(r.f_func_str) text += `   [Func]: ${r.f_func_str}\n`;
+            text += `   ${r.remark.replace(/\n/g, " ")}\n`;
+        });
+        const unfin = document.getElementById('unfinished').value;
+        if(unfin) text += `\n⚠️ Unfinished: ${unfin}`;
+        navigator.clipboard.writeText(text).then(() => alert("Copied / 已复制"));
     }
 </script>
 </body>
